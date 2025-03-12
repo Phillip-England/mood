@@ -5,21 +5,7 @@ import (
 	"os"
 )
 
-func main() {
-
-	app := New()
-
-	app.At("build", func(app *Mood) error {
-		fmt.Println("building...")
-		return nil
-	})
-
-	err := app.Run()
-	if err != nil {
-		panic(err)
-	}
-
-}
+type ActionFunc func(app *Mood) error
 
 type MoodArg struct {
 	Position int
@@ -31,6 +17,7 @@ type Mood struct {
 	Args         []MoodArg
 	Flags        []MoodArg
 	Actions      map[string]ActionFunc
+	Default      ActionFunc
 }
 
 func New() Mood {
@@ -58,6 +45,7 @@ func New() Mood {
 		Args:         args,
 		Flags:        flags,
 		Actions:      make(map[string]ActionFunc),
+		Default:      defaultWelcome,
 	}
 }
 
@@ -65,20 +53,20 @@ func (app *Mood) At(commandName string, fn ActionFunc) {
 	app.Actions[commandName] = fn
 }
 
+func (app *Mood) SetDefault(fn ActionFunc) {
+	app.Default = fn
+}
+
 func (app *Mood) Run() error {
 	if len(app.Args) == 0 {
-		return fmt.Errorf(`welcome to mood, please pass an arg to your cli application`)
+		return app.Default(app)
 	}
 	cmd := app.Args[0].Value
-	fn := app.Actions[cmd]
-	if fn == nil {
-		return fmt.Errorf(`[%s] is not a registered command`, cmd)
+	fn, exists := app.Actions[cmd]
+	if !exists {
+		return app.Default(app)
 	}
-	err := fn(app)
-	if err != nil {
-		return err
-	}
-	return nil
+	return fn(app)
 }
 
 func (app *Mood) HasFlag(flag string) bool {
@@ -103,4 +91,7 @@ func (cli *Mood) EnforceArg(position int, expectedValues ...string) error {
 	return fmt.Errorf("error: expected one of %v at position %d, but got [%s]", expectedValues, position, actualValue)
 }
 
-type ActionFunc func(app *Mood) error
+func defaultWelcome(app *Mood) error {
+	fmt.Println("Welcome to Mood! No command provided. Use --help to see available commands.")
+	return nil
+}
