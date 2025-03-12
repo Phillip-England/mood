@@ -78,6 +78,15 @@ func (app *Mood) HasFlag(flag string) bool {
 	return false
 }
 
+func (app *Mood) HasArg(arg string) bool {
+	for _, a := range app.Args {
+		if a.Value == arg {
+			return true
+		}
+	}
+	return false
+}
+
 func (cli *Mood) EnforceArg(position int, expectedValues ...string) error {
 	if position < 1 || position > len(cli.Args) {
 		return fmt.Errorf("error: expected argument at position %d, but not enough arguments were provided", position)
