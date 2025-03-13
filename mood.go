@@ -14,6 +14,7 @@ type MoodArg struct {
 
 type Mood struct {
 	OriginalArgs []string
+	Source       string
 	Args         []MoodArg
 	Flags        []MoodArg
 	Actions      map[string]ActionFunc
@@ -24,6 +25,12 @@ func New() Mood {
 	ogArgs := os.Args
 	var flags []MoodArg
 	var args []MoodArg
+
+	source := ""
+	if len(ogArgs) > 0 {
+		source = ogArgs[0]
+	}
+
 	for i, arg := range ogArgs {
 		if i == 0 {
 			continue
@@ -42,6 +49,7 @@ func New() Mood {
 	}
 	return Mood{
 		OriginalArgs: ogArgs,
+		Source:       source,
 		Args:         args,
 		Flags:        flags,
 		Actions:      make(map[string]ActionFunc),
@@ -106,15 +114,15 @@ func defaultWelcome(app *Mood) error {
 }
 
 func (app *Mood) GetArg(position int) string {
-	if position < 1 || position > len(app.Args) {
+	if position < 0 || position >= len(app.Args) {
 		return ""
 	}
-	return app.Args[position-1].Value
+	return app.Args[position].Value
 }
 
 func (app *Mood) GetArgOr(position int, defaultValue string) string {
-	if position < 1 || position > len(app.Args) {
+	if position < 0 || position >= len(app.Args) {
 		return defaultValue
 	}
-	return app.Args[position-1].Value
+	return app.Args[position].Value
 }
