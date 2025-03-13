@@ -104,3 +104,17 @@ func defaultWelcome(app *Mood) error {
 	fmt.Println("Welcome to Mood! No command provided. Use --help to see available commands.")
 	return nil
 }
+
+func (app *Mood) GetArg(position int) string {
+	if position < 1 || position > len(app.Args) {
+		return ""
+	}
+	return app.Args[position-1].Value
+}
+
+func (app *Mood) GetArgOr(position int, defaultValue string) string {
+	if position < 1 || position > len(app.Args) {
+		return defaultValue
+	}
+	return app.Args[position-1].Value
+}
