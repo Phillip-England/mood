@@ -127,9 +127,9 @@ func (app *App) HasArg(arg string) bool {
 	return exists
 }
 
-func (app *App) GetArg(arg string) (AppArg, bool) {
+func (app *App) GetArg(arg string) (string, bool) {
 	val, exists := app.Args[arg]
-	return val, exists
+	return val.Value, exists
 }
 
 func (app *App) GetArgOr(arg string, defaultValue string) string {
@@ -139,13 +139,13 @@ func (app *App) GetArgOr(arg string, defaultValue string) string {
 	return defaultValue
 }
 
-func (app *App) GetArgByPosition(position int) (AppArg, error) {
+func (app *App) GetArgByPosition(position int) (string, error) {
 	for _, arg := range app.Args {
 		if arg.Position == position {
-			return arg, nil
+			return arg.Value, nil
 		}
 	}
-	return AppArg{}, fmt.Errorf("error: argument at position %d not found", position)
+	return "", fmt.Errorf("error: argument at position %d not found", position)
 }
 
 type defaultCmd struct{}
