@@ -13,7 +13,6 @@ type AppArg struct {
 type CommandFactory func(app *App) (Cmd, error)
 
 type App struct {
-	OriginalArgs   []string
 	Source         string
 	Args           map[string]AppArg
 	Flags          map[string]AppArg
@@ -28,20 +27,17 @@ type Cmd interface {
 }
 
 func New() App {
-	ogArgs := os.Args
+	osArgs := os.Args
 	flags := make(map[string]AppArg)
 	args := make(map[string]AppArg)
 
 	source := ""
-	if len(ogArgs) > 0 {
-		source = ogArgs[0]
+	if len(osArgs) > 0 {
+		source = osArgs[0]
 	}
 
-	for i, arg := range ogArgs {
-		if i == 0 {
-			continue
-		}
-		if len(arg) > 1 && (arg[0] == '-' || (len(arg) > 2 && arg[:2] == "--")) {
+	for i, arg := range osArgs {
+		if len(arg) > 1 && i > 0 && (arg[0] == '-' || (len(arg) > 2 && arg[:2] == "--")) {
 			flags[arg] = AppArg{
 				Position: i,
 				Value:    arg,
@@ -55,7 +51,6 @@ func New() App {
 	}
 
 	return App{
-		OriginalArgs:   ogArgs,
 		Source:         source,
 		Args:           args,
 		Flags:          flags,
@@ -81,10 +76,20 @@ func (app *App) SetDefault(factory CommandFactory) {
 }
 
 func (app *App) Run() error {
-	if len(app.OriginalArgs) <= 1 {
+	firstArgPosition := 1
+	var firstArg string
+
+	for _, arg := range app.Args {
+		if arg.Position == firstArgPosition {
+			firstArg = arg.Value
+			break
+		}
+	}
+
+	if firstArg == "" {
 		return app.Default.Execute(app)
 	}
-	firstArg := app.OriginalArgs[1]
+
 	if factory, exists := app.Commands[firstArg]; exists {
 		cmd, err := factory(app)
 		if err != nil {
