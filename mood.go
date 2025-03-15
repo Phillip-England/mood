@@ -10,14 +10,17 @@ type AppArg struct {
 	Value    string
 }
 
+type CommandFactory func(app *App) (Cmd, error)
+
 type App struct {
-	OriginalArgs []string
-	Source       string
-	Args         map[string]AppArg
-	Flags        map[string]AppArg
-	Commands     map[string]Cmd
-	Default      Cmd
-	Store        map[string]any
+	OriginalArgs   []string
+	Source         string
+	Args           map[string]AppArg
+	Flags          map[string]AppArg
+	Commands       map[string]CommandFactory
+	DefaultFactory CommandFactory
+	Default        Cmd
+	Store          map[string]any
 }
 
 type Cmd interface {
@@ -52,29 +55,24 @@ func New() App {
 	}
 
 	return App{
-		OriginalArgs: ogArgs,
-		Source:       source,
-		Args:         args,
-		Flags:        flags,
-		Commands:     make(map[string]Cmd),
-		Default:      defaultCmd{},
-		Store:        make(map[string]any),
+		OriginalArgs:   ogArgs,
+		Source:         source,
+		Args:           args,
+		Flags:          flags,
+		Commands:       make(map[string]CommandFactory),
+		DefaultFactory: nil,
+		Default:        defaultCmd{},
+		Store:          make(map[string]any),
 	}
 }
 
-// Now takes app as a parameter in the function signature
-func (app *App) At(commandName string, fn func(app *App) (Cmd, error)) {
-	cmd, err := fn(app)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error registering command '%s': %v\n", commandName, err)
-		return
-	}
-	app.Commands[commandName] = cmd
+func (app *App) At(commandName string, factory CommandFactory) {
+	app.Commands[commandName] = factory
 }
 
-// Now takes app as a parameter in the function signature
-func (app *App) SetDefault(fn func(app *App) (Cmd, error)) {
-	cmd, err := fn(app)
+func (app *App) SetDefault(factory CommandFactory) {
+	app.DefaultFactory = factory
+	cmd, err := factory(app)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error setting default command: %v\n", err)
 		return
@@ -87,9 +85,14 @@ func (app *App) Run() error {
 		return app.Default.Execute(app)
 	}
 	firstArg := app.OriginalArgs[1]
-	if cmd, exists := app.Commands[firstArg]; exists {
+	if factory, exists := app.Commands[firstArg]; exists {
+		cmd, err := factory(app)
+		if err != nil {
+			return fmt.Errorf("error initializing command '%s': %w", firstArg, err)
+		}
 		return cmd.Execute(app)
 	}
+
 	return app.Default.Execute(app)
 }
 
