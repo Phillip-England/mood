@@ -138,6 +138,15 @@ func (app *App) GetArgOr(arg string, defaultValue string) string {
 	return defaultValue
 }
 
+func (app *App) GetArgByPosition(position int) (AppArg, error) {
+	for _, arg := range app.Args {
+		if arg.Position == position {
+			return arg, nil
+		}
+	}
+	return AppArg{}, fmt.Errorf("error: argument at position %d not found", position)
+}
+
 type defaultCmd struct{}
 
 func (d defaultCmd) Execute(app *App) error {
