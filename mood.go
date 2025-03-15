@@ -83,15 +83,12 @@ func (app *App) SetDefault(fn func(app *App) (Cmd, error)) {
 }
 
 func (app *App) Run() error {
-	if len(app.OriginalArgs) == 1 {
+	if len(app.OriginalArgs) <= 1 {
 		return app.Default.Execute(app)
 	}
 	firstArg := app.OriginalArgs[1]
 	if cmd, exists := app.Commands[firstArg]; exists {
-		if err := cmd.Execute(app); err != nil {
-			return fmt.Errorf("error executing command '%s': %w", firstArg, err)
-		}
-		return nil
+		return cmd.Execute(app)
 	}
 	return app.Default.Execute(app)
 }
