@@ -37,11 +37,11 @@ func main() {
 
 type DefaultCmd struct{}
 
-func NewDefaultCmd() (Cmd, error) {
+func NewDefaultCmd() (mood.Cmd, error) {
 	return DefaultCmd{}, nil
 }
 
-func (cmd DefaultCmd) Execute(app *App) error {
+func (cmd DefaultCmd) Execute(app *mood.App) error {
   fmt.Println("Hello, World!")
 	return nil
 }
@@ -52,11 +52,11 @@ func (cmd DefaultCmd) Execute(app *App) error {
 
 type HelpCmd struct{}
 
-func NewHelpCmd() (Cmd, error) {
+func NewHelpCmd() (mood.Cmd, error) {
 	return HelpCmd{}, nil
 }
 
-func (cmd HelpCmd) Execute(app *App) error {
+func (cmd HelpCmd) Execute(app *mood.App) error {
   fmt.Println("O'Doyle Rules!")
 	return nil
 }
