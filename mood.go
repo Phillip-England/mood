@@ -62,8 +62,9 @@ func New() App {
 	}
 }
 
-func (app *App) At(commandName string, fn func() (Cmd, error)) {
-	cmd, err := fn()
+// Now takes app as a parameter in the function signature
+func (app *App) At(commandName string, fn func(app *App) (Cmd, error)) {
+	cmd, err := fn(app)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error registering command '%s': %v\n", commandName, err)
 		return
@@ -71,8 +72,9 @@ func (app *App) At(commandName string, fn func() (Cmd, error)) {
 	app.Commands[commandName] = cmd
 }
 
-func (app *App) SetDefault(fn func() (Cmd, error)) {
-	cmd, err := fn()
+// Now takes app as a parameter in the function signature
+func (app *App) SetDefault(fn func(app *App) (Cmd, error)) {
+	cmd, err := fn(app)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error setting default command: %v\n", err)
 		return

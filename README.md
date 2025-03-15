@@ -37,7 +37,7 @@ func main() {
 
 type DefaultCmd struct{}
 
-func NewDefaultCmd() (mood.Cmd, error) {
+func NewDefaultCmd(app *mood.App) (mood.Cmd, error) {
 	return DefaultCmd{}, nil
 }
 
@@ -52,7 +52,7 @@ func (cmd DefaultCmd) Execute(app *mood.App) error {
 
 type HelpCmd struct{}
 
-func NewHelpCmd() (mood.Cmd, error) {
+func NewHelpCmd(app *mood.App) (mood.Cmd, error) {
 	return HelpCmd{}, nil
 }
 
@@ -78,7 +78,7 @@ Here is a quick copy/paste template for making a `Cmd`:
 ```go
 type DefaultCmd struct{}
 
-func NewDefaultCmd() (Cmd, error) {
+func NewDefaultCmd(app *mood.App) (Cmd, error) {
   // creation logic (validation, data-parsing, flag-handling, ect)
 	return DefaultCmd{}, nil
 }
